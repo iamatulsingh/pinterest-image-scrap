@@ -1,4 +1,4 @@
 bs4==0.0.1
-requests==2.19.1
+requests==2.20.0
 pycurl==7.43.0.2
 tqdm==4.24.0
