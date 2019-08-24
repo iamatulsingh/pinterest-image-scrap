@@ -1,5 +1,5 @@
 # pinterest-image-scrap
-This python (3.6) program scrap data from pinterest without official API.
+This python (3.7) program scrap data from pinterest without official API.
 
 >NOTE: It will definetly take more memory (according to the size of images) to download it.
 
