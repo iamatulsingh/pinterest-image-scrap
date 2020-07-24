@@ -14,12 +14,12 @@ class PinterestImageScraper:
         self.json_data_list = []
 
     # ---------------------------------------- GET GOOGLE RESULTS ---------------------------------
-    def get_pinterest_links(self, body):
+    @staticmethod
+    def get_pinterest_links(body):
         searched_urls = []
         html = soup(body, 'html.parser')
         links = html.select('#main > div > div > div > a')
         print('[+] saving results ...')
-
         for link in links:
             link = link.get('href')
             link = re.sub(r'/url\?q=', '', link)
@@ -28,19 +28,17 @@ class PinterestImageScraper:
 
         return searched_urls
 
-
     # -------------------------- save json data from source code of given pinterest url -------------
     def get_source(self, url):
         try:
             res = get(url)
         except Exception:
             return
-        html = soup(res.text,'html.parser')
+        html = soup(res.text, 'html.parser')
         # get json data from script tag having id initial-state
         json_data = html.find_all("script", attrs={"id": "initial-state"})
         for a in json_data:
             self.json_data_list.append(a.text)
-
 
     # --------------------------- READ JSON OF PINTEREST WEBSITE ----------------------
     def save_image_url(self):
@@ -49,59 +47,65 @@ class PinterestImageScraper:
         for js in self.json_data_list:
             try:
                 data = json.loads(js)
-                dct = data['resources']['data']['ReactBoardFeedResource']
-                for key in dct.keys():
-                    dct_length = len(data['resources']['data']['ReactBoardFeedResource'][key]['data']['board_feed'])
-                    for i in range(dct_length):
-                        img = data['resources']['data']['ReactBoardFeedResource'][key]['data']['board_feed'][i]['images']['orig']['url']
-                        url_list.append(img)
+                urls = []
+                for response in data['resourceResponses']:
+                    if isinstance(response["response"]["data"], list):
+                        for u in range(len(response["response"]["data"])):
+                            if isinstance(response["response"]["data"][u]["images"]["474x"], list):
+                                for i in response["response"]["data"][u]["images"]["474x"]:
+                                    urls.append(i)
+                            else:
+                                urls.append(response["response"]["data"][u]["images"]["474x"])
+                    else:
+                        if isinstance(response["response"]["data"]["images"]["474x"], list):
+                            for i in response["response"]["data"]["images"]["474x"]:
+                                    urls.append(i)
+                        else:
+                            urls.append(response["response"]["data"]["images"]["474x"])
+
+                for url in urls:
+                    url_list.append(url["url"])
             except Exception:
-                pass
+                continue
 
         return url_list
 
     # ------------------------------  download images from image url list ---------------------------
-    def download(self, url_list):
-        folder_name = input("Enter folder name: ")
+    @staticmethod
+    def download(url_list, keyword):
+        folder_name = keyword
         for img in tqdm(url_list):
             result = get(img, stream=True).content
-            filename = img.split("/")[-1]
-            try:
-                os.mkdir(os.path.abspath('.') + os.sep + folder_name)
-            except Exception:
-                pass
-            filepath = os.path.abspath('.') + os.sep + folder_name + os.sep + filename
-            with open(filepath,'wb') as handler:
+            file_name = img.split("/")[-1]
+            if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
+                os.mkdir(os.path.join(os.getcwd(), folder_name))
+            file_path = os.path.join(os.getcwd(), folder_name, file_name)
+            with open(file_path, 'wb') as handler:
                 handler.write(result)
-            if sys.platform == "win32":
-                os.system("cls")
-            elif sys.platform == "linux" or sys.platform == "linux2":
-                os.system("clear")
-            print("")
-            print("---------------- press CTRL + C to stop downloading -------------")
-            print("")
+            print("", end="\r")
 
     # -------------------------- get user keyword and google search for that keywords ---------------------
-    def start_scrape(self):
+    @staticmethod
+    def start_scraping():
         try:
-            keyword = input("Enter keyword: ")
-            keyword = keyword + " pinterest"
+            key = input("Enter keyword: ")
+            keyword = key + " pinterest"
             keyword = keyword.replace("+", "%20")
-            url = 'http://www.google.co.in/search?hl=en&q=' + keyword
+            url = f'http://www.google.co.in/search?hl=en&q={keyword}'
             print('[+] starting search ...')
             res = get(url)
-            searched_urls = self.get_pinterest_links(res.content)
+            searched_urls = PinterestImageScraper.get_pinterest_links(res.content)
         except Exception as e:
             print(e)
             return []
 
-        return searched_urls
+        return searched_urls, key.replace(" ", "_")
 
     def make_ready(self):
-        searched_url = self.start_scrape()
+        extracted_urls, keyword = PinterestImageScraper.start_scraping()
 
         print('[+] saving json data ...')
-        for i in searched_url:
+        for i in extracted_urls:
             self.get_source(i)
 
         # get all urls of images and save in a list
@@ -109,11 +113,13 @@ class PinterestImageScraper:
 
         # download images from saved images url
         print(f"[+] Total {len(url_list)} files available to download.")
-        print("\nPress enter to continue ...")
-        input()
+        print()
 
         if len(url_list):
-            self.download(url_list)
+            try:
+                PinterestImageScraper.download(url_list, keyword)
+            except KeyboardInterrupt:
+                return False
             return True
         else:
             return False
@@ -124,6 +130,6 @@ if __name__ == "__main__":
     is_downloaded = p_scraper.make_ready()
 
     if is_downloaded:
-        print("Downloading completed !!")
+        print("\nDownloading completed !!")
     else:
-        print("Nothing to download !!")
+        print("\nNothing to download !!")
