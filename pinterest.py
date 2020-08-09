@@ -32,17 +32,22 @@ class PinterestImageScraper:
     def get_source(self, url):
         try:
             res = get(url)
-        except Exception:
+        except Exception as e:
+            print(e)
             return
         html = soup(res.text, 'html.parser')
         # get json data from script tag having id initial-state
         json_data = html.find_all("script", attrs={"id": "initial-state"})
         for a in json_data:
-            self.json_data_list.append(a.text)
+            self.json_data_list.append(a.string)
 
     # --------------------------- READ JSON OF PINTEREST WEBSITE ----------------------
     def save_image_url(self):
         print('[+] saving image urls ...')
+        url_list = []
+        url_list = [i for i in self.json_data_list if i.strip()]
+        if not len(url_list):
+            return url_list
         url_list = []
         for js in self.json_data_list:
             try:
@@ -65,7 +70,8 @@ class PinterestImageScraper:
 
                 for url in urls:
                     url_list.append(url["url"])
-            except Exception:
+            except Exception as e:
+                print(e)
                 continue
 
         return url_list
