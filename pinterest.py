@@ -33,7 +33,6 @@ class PinterestImageScraper:
         try:
             res = get(url)
         except Exception as e:
-            print(e)
             return
         html = soup(res.text, 'html.parser')
         # get json data from script tag having id initial-state
@@ -71,7 +70,6 @@ class PinterestImageScraper:
                 for url in urls:
                     url_list.append(url["url"])
             except Exception as e:
-                print(e)
                 continue
 
         return url_list
@@ -102,7 +100,6 @@ class PinterestImageScraper:
             res = get(url)
             searched_urls = PinterestImageScraper.get_pinterest_links(res.content)
         except Exception as e:
-            print(e)
             return []
 
         return searched_urls, key.replace(" ", "_")
