@@ -7,6 +7,8 @@ from requests import get
 from bs4 import BeautifulSoup as soup
 from tqdm import tqdm
 
+from pydotmap import DotMap
+
 
 class PinterestImageScraper:
 
@@ -43,32 +45,31 @@ class PinterestImageScraper:
     # --------------------------- READ JSON OF PINTEREST WEBSITE ----------------------
     def save_image_url(self):
         print('[+] saving image urls ...')
-        url_list = []
         url_list = [i for i in self.json_data_list if i.strip()]
         if not len(url_list):
             return url_list
         url_list = []
         for js in self.json_data_list:
             try:
-                data = json.loads(js)
+                data = DotMap(json.loads(js))
                 urls = []
-                for response in data['resourceResponses']:
-                    if isinstance(response["response"]["data"], list):
-                        for u in range(len(response["response"]["data"])):
-                            if isinstance(response["response"]["data"][u]["images"]["474x"], list):
-                                for i in response["response"]["data"][u]["images"]["474x"]:
+                for response in data.resourceResponses:
+                    if isinstance(response.response.data, list):
+                        for u in range(len(response.response.data)):
+                            if isinstance(response.response.data[u].images.get("474x"), list):
+                                for i in response.response.data[u].images.get("474x"):
                                     urls.append(i)
                             else:
-                                urls.append(response["response"]["data"][u]["images"]["474x"])
+                                urls.append(response.response.data[u].images.get("474x"))
                     else:
-                        if isinstance(response["response"]["data"]["images"]["474x"], list):
-                            for i in response["response"]["data"]["images"]["474x"]:
-                                    urls.append(i)
+                        if isinstance(response.response.data.images.get("474x"), list):
+                            for i in response.response.data.images["474x"]:
+                                urls.append(i)
                         else:
-                            urls.append(response["response"]["data"]["images"]["474x"])
+                            urls.append(response.response.data.images.get("474x"))
 
-                for url in urls:
-                    url_list.append(url["url"])
+                for data in urls:
+                    url_list.append(data.url)
             except Exception as e:
                 continue
 
