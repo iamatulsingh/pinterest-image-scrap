@@ -1,5 +1,5 @@
 # pinterest-image-scrap
-[![built with Python3](https://img.shields.io/badge/built%20with-Python3.x-red.svg)](https://www.python.org/)
+[![built with Python3](https://img.shields.io/badge/built%20with-Python3.7-red.svg)](https://www.python.org/)
 [![built with BeautifulSoup](https://img.shields.io/badge/built%20with-BeautifulSoup-blue.svg)](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
 
 This python (3.7) program scrap data from pinterest without official API.
