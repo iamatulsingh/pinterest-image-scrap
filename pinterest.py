@@ -4,8 +4,9 @@ import json
 import os
 
 from requests import get
-from bs4 import BeautifulSoup as soup
 from tqdm import tqdm
+from bs4 import BeautifulSoup as soup
+from concurrent.futures import ThreadPoolExecutor
 
 from pydotmap import DotMap
 
@@ -14,6 +15,13 @@ class PinterestImageScraper:
 
     def __init__(self):
         self.json_data_list = []
+
+    @staticmethod
+    def clear():
+        if os.name == 'nt':
+            _ = os.system('cls')
+        else:
+            _ = os.system('clear')
 
     # ---------------------------------------- GET GOOGLE RESULTS ---------------------------------
     @staticmethod
@@ -75,19 +83,32 @@ class PinterestImageScraper:
 
         return url_list
 
-    # ------------------------------  download images from image url list ---------------------------
+    # ------------------------------  save all downloaded images to folder ---------------------------
     @staticmethod
-    def download(url_list, keyword):
-        folder_name = keyword
+    def saving_op(var):
+        url_list, folder_name = var
+        if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
+                os.mkdir(os.path.join(os.getcwd(), folder_name))
         for img in tqdm(url_list):
             result = get(img, stream=True).content
             file_name = img.split("/")[-1]
-            if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
-                os.mkdir(os.path.join(os.getcwd(), folder_name))
             file_path = os.path.join(os.getcwd(), folder_name, file_name)
             with open(file_path, 'wb') as handler:
                 handler.write(result)
             print("", end="\r")
+
+    # ------------------------------  download images from image url list ----------------------------
+    @staticmethod
+    def download(url_list, keyword):
+        folder_name = keyword
+        num_of_workers = 10
+        idx = len(url_list) // num_of_workers
+        param = []
+        for i in range(num_of_workers):
+            param.append((url_list[((i*idx)):(idx*(i+1))], folder_name))
+        with ThreadPoolExecutor(max_workers=num_of_workers) as executor:
+            executor.map(PinterestImageScraper.saving_op, param)
+        PinterestImageScraper.clear()
 
     # -------------------------- get user keyword and google search for that keywords ---------------------
     @staticmethod
@@ -104,6 +125,7 @@ class PinterestImageScraper:
             return []
 
         return searched_urls, key.replace(" ", "_")
+
 
     def make_ready(self):
         extracted_urls, keyword = PinterestImageScraper.start_scraping()
