@@ -112,9 +112,9 @@ class PinterestImageScraper:
 
     # -------------------------- get user keyword and google search for that keywords ---------------------
     @staticmethod
-    def start_scraping():
+    def start_scraping(key=None):
         try:
-            key = input("Enter keyword: ")
+            key = input("Enter keyword: ") if key == None else key
             keyword = key + " pinterest"
             keyword = keyword.replace("+", "%20")
             url = f'http://www.google.co.in/search?hl=en&q={keyword}'
@@ -127,8 +127,8 @@ class PinterestImageScraper:
         return searched_urls, key.replace(" ", "_")
 
 
-    def make_ready(self):
-        extracted_urls, keyword = PinterestImageScraper.start_scraping()
+    def make_ready(self, key=None):
+        extracted_urls, keyword = PinterestImageScraper.start_scraping(key)
 
         print('[+] saving json data ...')
         for i in extracted_urls:
