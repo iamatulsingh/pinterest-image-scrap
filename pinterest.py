@@ -2,6 +2,8 @@ import sys
 import re
 import json
 import os
+import cv2
+import numpy as np
 
 from requests import get
 from tqdm import tqdm
@@ -15,6 +17,7 @@ class PinterestImageScraper:
 
     def __init__(self):
         self.json_data_list = []
+        self.unique_img = []
 
     @staticmethod
     def clear():
@@ -80,12 +83,11 @@ class PinterestImageScraper:
                     url_list.append(data.url)
             except Exception as e:
                 continue
-
-        return url_list
+        
+        return list(set(url_list))
 
     # ------------------------------  save all downloaded images to folder ---------------------------
-    @staticmethod
-    def saving_op(var):
+    def saving_op(self, var):
         url_list, folder_name = var
         if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
                 os.mkdir(os.path.join(os.getcwd(), folder_name))
@@ -93,13 +95,15 @@ class PinterestImageScraper:
             result = get(img, stream=True).content
             file_name = img.split("/")[-1]
             file_path = os.path.join(os.getcwd(), folder_name, file_name)
-            with open(file_path, 'wb') as handler:
-                handler.write(result)
+            img_arr = np.asarray(bytearray(result), dtype="uint8")
+            image = cv2.imdecode(img_arr, cv2.IMREAD_COLOR)
+            if not image.shape in self.unique_img:
+                cv2.imwrite(file_path, image)
+            self.unique_img.append(image.shape)
             print("", end="\r")
 
     # ------------------------------  download images from image url list ----------------------------
-    @staticmethod
-    def download(url_list, keyword):
+    def download(self, url_list, keyword):
         folder_name = keyword
         num_of_workers = 10
         idx = len(url_list) // num_of_workers
@@ -107,7 +111,7 @@ class PinterestImageScraper:
         for i in range(num_of_workers):
             param.append((url_list[((i*idx)):(idx*(i+1))], folder_name))
         with ThreadPoolExecutor(max_workers=num_of_workers) as executor:
-            executor.map(PinterestImageScraper.saving_op, param)
+            executor.map(self.saving_op, param)
         PinterestImageScraper.clear()
 
     # -------------------------- get user keyword and google search for that keywords ---------------------
@@ -143,7 +147,7 @@ class PinterestImageScraper:
 
         if len(url_list):
             try:
-                PinterestImageScraper.download(url_list, keyword)
+                self.download(url_list, keyword)
             except KeyboardInterrupt:
                 return False
             return True
