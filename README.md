@@ -4,7 +4,7 @@
 
 This python (3.7) program scrap data from pinterest without official API.
 
->NOTE: It will definetly take some memory (according to the size of images) to download it.
+>NOTE: It will definetly take some memory (depends on the size of images) to download it.
 
 ### install all required libraries using following command from your project directory     
 ``` pip install -r requirements.txt ```
