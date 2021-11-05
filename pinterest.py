@@ -49,7 +49,7 @@ class PinterestImageScraper:
             return
         html = soup(res.text, 'html.parser')
         # get json data from script tag having id initial-state
-        json_data = html.find_all("script", attrs={"id": "initial-state"})
+        json_data = html.find_all("script", attrs={"id": "__PWS_DATA__"})
         for a in json_data:
             self.json_data_list.append(a.string)
 
@@ -64,23 +64,15 @@ class PinterestImageScraper:
             try:
                 data = DotMap(json.loads(js))
                 urls = []
-                for response in data.resourceResponses:
-                    if isinstance(response.response.data, list):
-                        for u in range(len(response.response.data)):
-                            if isinstance(response.response.data[u].images.get("474x"), list):
-                                for i in response.response.data[u].images.get("474x"):
-                                    urls.append(i)
-                            else:
-                                urls.append(response.response.data[u].images.get("474x"))
+                for pin in data.props.initialReduxState.pins:
+                    if isinstance(data.props.initialReduxState.pins[pin].images.get("474x"), list):
+                        for i in data.props.initialReduxState.pins[pin].images.get("474x"):
+                            urls.append(i.get("url"))
                     else:
-                        if isinstance(response.response.data.images.get("474x"), list):
-                            for i in response.response.data.images["474x"]:
-                                urls.append(i)
-                        else:
-                            urls.append(response.response.data.images.get("474x"))
+                        urls.append(data.props.initialReduxState.pins[pin].images.get("474x").get("url"))
 
-                for data in urls:
-                    url_list.append(data.url)
+                for url in urls:
+                    url_list.append(url)
             except Exception as e:
                 continue
         
