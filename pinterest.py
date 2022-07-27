@@ -65,11 +65,11 @@ class PinterestImageScraper:
                 data = DotMap(json.loads(js))
                 urls = []
                 for pin in data.props.initialReduxState.pins:
-                    if isinstance(data.props.initialReduxState.pins[pin].images.get("474x"), list):
-                        for i in data.props.initialReduxState.pins[pin].images.get("474x"):
+                    if isinstance(data.props.initialReduxState.pins[pin].images.get("orig"), list):
+                        for i in data.props.initialReduxState.pins[pin].images.get("orig"):
                             urls.append(i.get("url"))
                     else:
-                        urls.append(data.props.initialReduxState.pins[pin].images.get("474x").get("url"))
+                        urls.append(data.props.initialReduxState.pins[pin].images.get("orig").get("url"))
 
                 for url in urls:
                     url_list.append(url)
@@ -104,7 +104,7 @@ class PinterestImageScraper:
     def download(self, url_list, keyword):
         folder_name = keyword
         num_of_workers = 10
-        idx = len(url_list) // num_of_workers
+        idx = len(url_list) // num_of_workers if len(url_list) > 9 else len(url_list)
         param = []
         for i in range(num_of_workers):
             param.append((url_list[((i*idx)):(idx*(i+1))], folder_name))
