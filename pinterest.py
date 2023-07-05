@@ -132,6 +132,9 @@ class PinterestImageScraper:
     def make_ready(self, key=None):
         extracted_urls, keyword = PinterestImageScraper.start_scraping(key)
 
+        self.json_data_list = []
+        self.unique_img = []
+
         print('[+] saving json data ...')
         for i in extracted_urls:
             self.get_source(i)
