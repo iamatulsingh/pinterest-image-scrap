@@ -8,19 +8,19 @@ This python3 program scrap data from pinterest without official API.
 
 >NOTE: It will definetly take some memory (depends on the size of images) to download it.
 
-### install all required libraries using following command from your project directory     
+## install all required libraries using following command from your project directory     
 ```bash
 pip install -r requirements.txt
 ```
 
-### how to run
+## how to run
 
-1) directly
+### 1) directly
 ```bash
 python pinterest.py
 ```
 
-2) using import
+### 2) using import
 ```python
 from pinterest import PinterestImageScraper
 p_scraper = PinterestImageScraper()
