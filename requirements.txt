@@ -2,5 +2,5 @@ requests==2.32.0
 bs4==0.0.1
 tqdm==4.66.3
 pydotmap
-opencv-python==4.5.3.56
+opencv-python==4.8.1.78
 numpy==1.22.0
